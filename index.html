@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>48시간 금고</title>
+<style>
+  :root {
+    --bg: #f3f4f6;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --lock: #dc2626;
+    --lock-soft: #fee2e2;
+    --ok: #059669;
+    --ok-soft: #d1fae5;
+    --warn: #b45309;
+    --warn-soft: #fef3c7;
+    --radius: 18px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0f17;
+      --card: #151b26;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #263041;
+      --accent: #60a5fa;
+      --accent-soft: #1e3a5f;
+      --lock: #f87171;
+      --lock-soft: #3b1518;
+      --ok: #34d399;
+      --ok-soft: #0f3326;
+      --warn: #fbbf24;
+      --warn-soft: #3a2c0a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+  header.top {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    margin: 4px 0 16px;
+  }
+  header.top h1 { font-size: 30px; margin: 0; letter-spacing: -0.5px; }
+  .clock { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .card {
+    background: var(--card); border-radius: var(--radius); padding: 22px;
+    margin-bottom: 16px; border: 1px solid var(--line);
+  }
+  .card h2 { margin: 0 0 14px; font-size: 22px; }
+  .card h3 { margin: 0 0 8px; font-size: 19px; }
+  label.f { display: block; font-weight: 700; margin: 14px 0 6px; font-size: 16px; }
+  input[type=text], input[type=number], textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 2px solid var(--line); border-radius: 14px; padding: 14px 16px; outline: none;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { min-height: 120px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .counter {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; border-radius: 14px; background: var(--bg); margin-bottom: 14px;
+  }
+  .counter .big { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .counter .big small { font-size: 20px; color: var(--muted); font-weight: 600; }
+  .q-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .q {
+    border: 2px solid var(--line); border-radius: 14px; padding: 14px;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  }
+  .q.yes { border-color: var(--lock); }
+  .q.no { border-color: var(--ok); }
+  .q .t { font-weight: 600; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .seg button {
+    font: inherit; font-weight: 700; padding: 12px; border-radius: 12px;
+    border: 2px solid var(--line); background: var(--card); color: var(--text); cursor: pointer;
+    min-height: 52px;
+  }
+  .seg button.on-yes { background: var(--lock); border-color: var(--lock); color: #fff; }
+  .seg button.on-no { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font: inherit; font-weight: 800; font-size: 19px; padding: 16px 22px; min-height: 60px;
+    border-radius: 16px; border: none; cursor: pointer; background: var(--accent); color: #fff;
+  }
+  .btn.full { width: 100%; }
+  .btn.ghost { background: var(--bg); color: var(--text); border: 2px solid var(--line); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .notice { border-radius: 14px; padding: 16px 18px; font-weight: 600; margin-top: 14px; }
+  .notice.lock { background: var(--lock-soft); color: var(--lock); }
+  .notice.warn { background: var(--warn-soft); color: var(--warn); }
+  .notice.ok { background: var(--ok-soft); color: var(--ok); }
+  .notice.info { background: var(--accent-soft); color: var(--accent); }
+  .err { color: var(--lock); font-weight: 700; margin-top: 12px; min-height: 1em; }
+
+  /* 금고 카드 */
+  .vault-item { border-left: 8px solid var(--lock); }
+  .vault-item.ready { border-left-color: var(--accent); }
+  .vault-item.open { border-left-color: var(--warn); }
+  .vi-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .vi-head .name { font-size: 24px; font-weight: 800; }
+  .vi-head .amt { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .countdown {
+    font-size: 56px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums;
+    margin: 10px 0 4px; color: var(--lock);
+  }
+  .bar { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; margin: 8px 0 12px; }
+  .bar > i { display: block; height: 100%; background: var(--lock); border-radius: 99px; }
+  .meta { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .reason { white-space: pre-wrap; background: var(--bg); padding: 12px 14px; border-radius: 12px; margin: 10px 0; font-size: 16px; }
+  .ask { font-size: 26px; font-weight: 800; margin: 12px 0; }
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+  .choices button {
+    font: inherit; font-weight: 800; font-size: 20px; min-height: 64px; border-radius: 14px;
+    border: 2px solid var(--line); background: var(--card); color: var(--text); cursor: pointer;
+  }
+  .choices button.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* 일지 */
+  .j-tools { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 14px; font-weight: 700; }
+  .chip.lock { background: var(--lock-soft); color: var(--lock); }
+  .chip.nolock { background: var(--ok-soft); color: var(--ok); }
+  .chip.dec { background: var(--accent-soft); color: var(--accent); }
+  .chip.pending { background: var(--warn-soft); color: var(--warn); }
+  .j-item { border-top: 1px solid var(--line); padding: 16px 0; }
+  .j-item:first-child { border-top: none; padding-top: 4px; }
+  .j-grid { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 16px; margin-top: 8px; }
+  .j-grid dt { color: var(--muted); }
+  .j-grid dd { margin: 0; font-variant-numeric: tabular-nums; }
+  details summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 15px; margin-top: 8px; }
+  details ol { margin: 8px 0 0; padding-left: 22px; font-size: 15px; }
+  .empty { color: var(--muted); text-align: center; padding: 30px 10px; }
+
+  /* 하단 탭 */
+  nav.tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+    z-index: 10;
+  }
+  nav.tabs button {
+    font: inherit; background: none; border: none; color: var(--muted); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px;
+    font-size: 15px; font-weight: 700; min-height: 64px;
+  }
+  nav.tabs button .ic { font-size: 24px; line-height: 1; }
+  nav.tabs button.on { color: var(--accent); background: var(--accent-soft); }
+  .badge { background: var(--lock); color: #fff; border-radius: 99px; padding: 0 8px; font-size: 12px; margin-left: 4px; }
+  .hidden { display: none !important; }
+  .constitution { font-size: 15px; color: var(--muted); }
+  .constitution li { margin: 4px 0; }
+
+  @media (max-width: 680px) {
+    .row2, .q-list { grid-template-columns: 1fr; }
+    .countdown { font-size: 44px; }
+    .j-grid { grid-template-columns: 110px 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>🔒 48시간 금고</h1>
+    <div class="clock" id="clock">현재 시각: 확인 중…</div>
+  </header>
+
+  <div id="storageWarn" class="notice lock hidden">
+    ⚠️ 이 브라우저에서 기기 저장소를 사용할 수 없습니다(사생활 보호 모드 등). 기록이 저장되지 않을 수 있으니 즉시 백업하세요.
+  </div>
+
+  <!-- 1. 새 판단 -->
+  <section id="tab-new">
+    <div class="card">
+      <h2>1. 무엇을 사고 싶나?</h2>
+      <label class="f" for="ticker">종목명</label>
+      <input id="ticker" type="text" maxlength="60" autocomplete="off" placeholder="예: 종목명 또는 티커">
+      <label class="f" for="amount">사고 싶은 금액 (달러, USD)</label>
+      <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="예: 500">
+      <label class="f" for="reason">사고 싶은 이유</label>
+      <textarea id="reason" maxlength="2000" placeholder="지금 사고 싶은 이유를 자유롭게 적어주세요."></textarea>
+      <div class="hint">입력 시각은 저장 버튼을 누르는 순간 기기 시계 기준으로 자동 기록됩니다.</div>
+    </div>
+
+    <div class="card">
+      <h2>2. 편향 체크리스트</h2>
+      <div class="counter">
+        <div>
+          <div style="font-weight:700">'예' 개수</div>
+          <div class="hint" id="answeredInfo">8개 중 0개 답함</div>
+        </div>
+        <div class="big"><span id="yesCount">0</span><small> / 8</small></div>
+      </div>
+      <div class="q-list" id="qList"></div>
+      <div class="hint" style="margin-top:12px">규칙: '예'가 3개 이상이면 48시간 잠금.</div>
+    </div>
+
+    <button class="btn full" id="saveBtn">기록하기</button>
+    <div class="err" id="formErr"></div>
+    <div id="saveResult"></div>
+  </section>
+
+  <!-- 2. 금고 -->
+  <section id="tab-vault" class="hidden">
+    <div id="vaultList"></div>
+  </section>
+
+  <!-- 3. 일지 -->
+  <section id="tab-journal" class="hidden">
+    <div class="card">
+      <div class="j-tools">
+        <h2 style="margin:0">결정 일지</h2>
+        <button class="btn ghost" id="sortBtn" style="min-height:48px;font-size:16px;padding:10px 16px">정렬: 최신순</button>
+      </div>
+      <div id="journalList"></div>
+    </div>
+  </section>
+
+  <!-- 4. 백업 -->
+  <section id="tab-backup" class="hidden">
+    <div class="card">
+      <h2>기록 내보내기 (백업)</h2>
+      <p class="meta" style="margin-top:0">툴도 틀릴 수 있습니다. 브라우저 데이터가 지워지면 기록도 사라지므로 주기적으로 백업하세요. 파일은 이 기기로만 다운로드되며 어디에도 전송되지 않습니다.</p>
+      <div class="btn-row">
+        <button class="btn" id="exportJson">⬇️ 백업 파일 (JSON)</button>
+        <button class="btn ghost" id="exportCsv">⬇️ 표 파일 (CSV)</button>
+      </div>
+      <div class="meta" id="backupInfo" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2>백업 불러오기</h2>
+      <p class="meta" style="margin-top:0">이전에 내보낸 JSON 백업 파일을 불러옵니다. 이미 있는 기록은 덮어쓰지 않고, 없는 기록만 추가합니다.</p>
+      <input type="file" id="importFile" accept="application/json,.json" class="hidden">
+      <button class="btn ghost" id="importBtn">⬆️ 백업 파일 선택</button>
+      <div id="importResult"></div>
+    </div>
+    <div class="card">
+      <h3>이 앱의 원칙</h3>
+      <ul class="constitution">
+        <li>이 앱은 나침반이지 운전대가 아닙니다. 매수·매도를 추천하거나 결정하지 않습니다.</li>
+        <li>증권사·은행 연결, 자동 주문, 자동 이체 기능이 없습니다. 매매는 직접 하세요.</li>
+        <li>로그인·비밀번호·계좌번호 등 개인정보를 받지 않습니다.</li>
+        <li>모든 기록은 이 기기의 브라우저 안에만 저장되며 외부로 전송되지 않습니다.</li>
+        <li>모든 시각은 이 기기의 시계 기준입니다. 기기 시계가 틀리면 시각도 틀립니다.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button data-tab="new" class="on"><span class="ic">✍️</span>새 판단</button>
+  <button data-tab="vault"><span class="ic">🔒</span><span>금고<span id="vaultBadge" class="badge hidden"></span></span></button>
+  <button data-tab="journal"><span class="ic">📒</span>일지</button>
+  <button data-tab="backup"><span class="ic">💾</span>백업</button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'vault48.records.v1';
+  var LOCK_MS = 48 * 60 * 60 * 1000;
+  var LOCK_THRESHOLD = 3;
+  var CHOICES = ['매수', '보류', '포기'];
+  var QUESTIONS = [
+    '이 판단이 확증 편향은 아닌가?',
+    '손실 회피 때문에 팔려는 건 아닌가?',
+    '내가 과잉 확신 상태인가?',
+    '평단(과거 가격)에 앵커링됐는가?',
+    'FOMO인가, 진짜 thesis인가?',
+    '남들이 사니까 사는 건 아닌가?',
+    '단기 하락에 장기 시선을 잃었는가?',
+    '내가 통제할 수 없는 걸 통제하려는가?'
+  ];
+  var NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧'];
+  var DAYS = ['일','월','화','수','목','금','토'];
+  var TZ = (function () {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || '시간대 확인 필요'; }
+    catch (e) { return '시간대 확인 필요'; }
+  })();
+
+  // ---------- 저장소 (기기 안에만) ----------
+  var storageOk = true;
+  var memoryStore = [];
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { storageOk = false; return memoryStore; }
+  }
+  function save(arr) {
+    memoryStore = arr;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); storageOk = true; }
+    catch (e) { storageOk = false; }
+    document.getElementById('storageWarn').classList.toggle('hidden', storageOk);
+  }
+  var records = load();
+  try { localStorage.setItem('vault48.test', '1'); localStorage.removeItem('vault48.test'); }
+  catch (e) { storageOk = false; }
+  document.getElementById('storageWarn').classList.toggle('hidden', storageOk);
+
+  // ---------- 유틸 ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(iso) {
+    if (!iso) return '확인 필요';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '확인 필요';
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      ' (' + DAYS[d.getDay()] + ') ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  function fmtTz(iso) { return fmt(iso) + ' · ' + TZ; }
+  function money(n) {
+    if (typeof n !== 'number' || !isFinite(n)) return '확인 필요';
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function remain(ms) {
+    if (ms < 0) ms = 0;
+    var s = Math.floor(ms / 1000);
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+    return pad(h) + ':' + pad(m) + ':' + pad(ss);
+  }
+  function uid() {
+    return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+  function isUnlocked(r, now) { return !r.locked || now >= new Date(r.unlockAt).getTime(); }
+
+  // ---------- 시계 ----------
+  function tickClock() {
+    $('clock').textContent = '현재 시각: ' + fmtTz(new Date().toISOString()) + ' (기기 시계 기준)';
+  }
+
+  // ---------- 탭 ----------
+  var currentTab = 'new';
+  function showTab(name) {
+    currentTab = name;
+    ['new', 'vault', 'journal', 'backup'].forEach(function (t) {
+      $('tab-' + t).classList.toggle('hidden', t !== name);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'), function (b) {
+      b.classList.toggle('on', b.getAttribute('data-tab') === name);
+    });
+    renderAll();
+    window.scrollTo(0, 0);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'), function (b) {
+    b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
+  });
+
+  // ---------- 체크리스트 ----------
+  var answers = new Array(8).fill(null);
+  function renderQuestions() {
+    var html = '';
+    QUESTIONS.forEach(function (q, i) {
+      var a = answers[i];
+      html += '<div class="q ' + (a === true ? 'yes' : a === false ? 'no' : '') + '">' +
+        '<div class="t">' + NUMS[i] + ' ' + esc(q) + '</div>' +
+        '<div class="seg">' +
+          '<button type="button" data-i="' + i + '" data-v="1" class="' + (a === true ? 'on-yes' : '') + '">예</button>' +
+          '<button type="button" data-i="' + i + '" data-v="0" class="' + (a === false ? 'on-no' : '') + '">아니오</button>' +
+        '</div></div>';
+    });
+    $('qList').innerHTML = html;
+    var yes = answers.filter(function (x) { return x === true; }).length;
+    var answered = answers.filter(function (x) { return x !== null; }).length;
+    $('yesCount').textContent = yes;
+    $('answeredInfo').textContent = '8개 중 ' + answered + '개 답함';
+  }
+  $('qList').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-i]');
+    if (!b) return;
+    answers[+b.getAttribute('data-i')] = b.getAttribute('data-v') === '1';
+    renderQuestions();
+  });
+
+  // ---------- 기록하기 ----------
+  $('saveBtn').addEventListener('click', function () {
+    var ticker = $('ticker').value.trim();
+    var amountStr = $('amount').value.trim();
+    var amount = Number(amountStr);
+    var reason = $('reason').value.trim();
+    var errs = [];
+    if (!ticker) errs.push('종목명');
+    if (!amountStr || !isFinite(amount) || amount <= 0) errs.push('금액(0보다 큰 숫자)');
+    if (!reason) errs.push('이유');
+    var unanswered = [];
+    answers.forEach(function (a, i) { if (a === null) unanswered.push(NUMS[i]); });
+    if (unanswered.length) errs.push('체크리스트 ' + unanswered.join(''));
+    if (errs.length) { $('formErr').textContent = '입력 필요: ' + errs.join(', '); return; }
+    $('formErr').textContent = '';
+
+    var now = new Date();
+    var yes = answers.filter(function (x) { return x === true; }).length;
+    var locked = yes >= LOCK_THRESHOLD;
+    var rec = {
+      id: uid(),
+      createdAt: now.toISOString(),
+      timeZone: TZ,
+      ticker: ticker,
+      amountUSD: Math.round(amount * 100) / 100,
+      reason: reason,
+      answers: answers.slice(),
+      yesCount: yes,
+      locked: locked,
+      unlockAt: locked ? new Date(now.getTime() + LOCK_MS).toISOString() : null,
+      decision: null
+    };
+    records.push(rec);
+    save(records);
+
+    var msg;
+    if (locked) {
+      msg = '<div class="notice lock">🔒 \'예\' ' + yes + '개 → 규칙에 따라 48시간 잠금되었습니다.<br>' +
+        '입력 시각: ' + esc(fmtTz(rec.createdAt)) + '<br>해제 시각: ' + esc(fmtTz(rec.unlockAt)) +
+        '<br><br><button class="btn" data-go="vault">금고에서 카운트다운 보기</button></div>';
+    } else {
+      msg = '<div class="notice warn">\'예\' ' + yes + '개 → 규칙상 잠금은 아니지만 결정은 신중히.<br>' +
+        '입력 시각: ' + esc(fmtTz(rec.createdAt)) + ' · 기록되었습니다.' +
+        '<br><br><button class="btn" data-go="journal">일지에서 보기</button></div>';
+    }
+    $('saveResult').innerHTML = msg;
+
+    // 폼 초기화
+    $('ticker').value = ''; $('amount').value = ''; $('reason').value = '';
+    answers = new Array(8).fill(null);
+    renderQuestions();
+    renderBadge();
+  });
+  $('saveResult').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-go]');
+    if (b) { $('saveResult').innerHTML = ''; showTab(b.getAttribute('data-go')); }
+  });
+
+  // ---------- 금고 ----------
+  var pendingChoice = {};
+  function renderVault() {
+    var now = Date.now();
+    var list = records.filter(function (r) { return r.locked && !r.decision; })
+      .sort(function (a, b) { return new Date(a.unlockAt) - new Date(b.unlockAt); });
+    if (!list.length) {
+      $('vaultList').innerHTML = '<div class="card empty">🔓 금고가 비어 있습니다.<br>잠긴 기록이 없거나, 모두 최종 결정이 기록되었습니다.</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function (r) {
+      var unlockMs = new Date(r.unlockAt).getTime();
+      var created = new Date(r.createdAt).getTime();
+      var ready = now >= unlockMs;
+      html += '<div class="card vault-item ' + (ready ? 'ready' : '') + '" data-id="' + esc(r.id) + '">' +
+        '<div class="vi-head"><span class="name">' + esc(r.ticker) + '</span><span class="amt">' + esc(money(r.amountUSD)) + '</span></div>' +
+        '<div class="meta">입력: ' + esc(fmtTz(r.createdAt)) + ' · 체크 \'예\' ' + r.yesCount + '/8</div>';
+      if (!ready) {
+        var pct = Math.min(100, Math.max(0, ((now - created) / (unlockMs - created)) * 100));
+        html += '<div class="countdown" data-cd="' + esc(r.id) + '">' + remain(unlockMs - now) + '</div>' +
+          '<div class="meta">남은 시간 (시:분:초)</div>' +
+          '<div class="bar"><i data-bar="' + esc(r.id) + '" style="width:' + pct.toFixed(2) + '%"></i></div>' +
+          '<div class="meta">해제 시각: ' + esc(fmtTz(r.unlockAt)) + '</div>' +
+          '<div class="reason">' + esc(r.reason) + '</div>';
+      } else {
+        var sel = pendingChoice[r.id] || '';
+        html += '<div class="ask">48시간이 지났습니다. 아직도 사고 싶나?</div>' +
+          '<div class="meta">해제 시각: ' + esc(fmtTz(r.unlockAt)) + '</div>' +
+          '<div class="reason"><b>48시간 전 내가 적은 이유:</b>\n' + esc(r.reason) + '</div>' +
+          decisionForm(r.id, sel);
+      }
+      html += '</div>';
+    });
+    $('vaultList').innerHTML = html;
+  }
+  function decisionForm(id, sel) {
+    var h = '<div class="choices">';
+    CHOICES.forEach(function (c) {
+      h += '<button type="button" data-choose="' + esc(c) + '" data-rid="' + esc(id) + '" class="' + (sel === c ? 'sel' : '') + '">' + c + '</button>';
+    });
+    h += '</div>' +
+      '<label class="f" for="memo-' + esc(id) + '">한 줄 메모</label>' +
+      '<input type="text" id="memo-' + esc(id) + '" maxlength="200" placeholder="왜 이렇게 결정했나?">' +
+      '<div class="err" id="derr-' + esc(id) + '"></div>' +
+      '<button class="btn full" data-commit="' + esc(id) + '">최종 결정 기록</button>' +
+      '<div class="hint">결정은 기록일 뿐, 이 앱은 주문을 넣지 않습니다. 매매는 직접 하세요.</div>';
+    return h;
+  }
+  function handleDecisionClick(e) {
+    var c = e.target.closest('[data-choose]');
+    if (c) {
+      var rid = c.getAttribute('data-rid');
+      pendingChoice[rid] = c.getAttribute('data-choose');
+      var box = c.parentNode;
+      Array.prototype.forEach.call(box.querySelectorAll('button'), function (b) {
+        b.classList.toggle('sel', b === c);
+      });
+      return;
+    }
+    var k = e.target.closest('[data-commit]');
+    if (k) {
+      var id = k.getAttribute('data-commit');
+      var r = records.find(function (x) { return x.id === id; });
+      if (!r) return;
+      var errEl = document.getElementById('derr-' + id);
+      if (!isUnlocked(r, Date.now())) { if (errEl) errEl.textContent = '아직 잠금 중입니다.'; return; }
+      var choice = pendingChoice[id];
+      var memoEl = document.getElementById('memo-' + id);
+      var memo = memoEl ? memoEl.value.trim() : '';
+      if (!choice) { if (errEl) errEl.textContent = '매수 / 보류 / 포기 중 하나를 고르세요.'; return; }
+      if (!memo) { if (errEl) errEl.textContent = '한 줄 메모를 적어주세요.'; return; }
+      r.decision = { choice: choice, memo: memo, decidedAt: new Date().toISOString(), timeZone: TZ };
+      delete pendingChoice[id];
+      save(records);
+      renderAll();
+    }
+  }
+  $('vaultList').addEventListener('click', handleDecisionClick);
+  $('journalList').addEventListener('click', handleDecisionClick);
+
+  function tickVault() {
+    if (currentTab !== 'vault') return;
+    var now = Date.now();
+    var needRerender = false;
+    records.forEach(function (r) {
+      if (!r.locked || r.decision) return;
+      var el = document.querySelector('[data-cd="' + r.id + '"]');
+      if (!el) return;
+      var unlockMs = new Date(r.unlockAt).getTime();
+      if (now >= unlockMs) { needRerender = true; return; }
+      el.textContent = remain(unlockMs - now);
+      var created = new Date(r.createdAt).getTime();
+      var bar = document.querySelector('[data-bar="' + r.id + '"]');
+      if (bar) bar.style.width = Math.min(100, ((now - created) / (unlockMs - created)) * 100).toFixed(2) + '%';
+    });
+    if (needRerender) { renderVault(); renderBadge(); }
+  }
+
+  function renderBadge() {
+    var n = records.filter(function (r) { return r.locked && !r.decision; }).length;
+    var b = $('vaultBadge');
+    b.textContent = n;
+    b.classList.toggle('hidden', n === 0);
+  }
+
+  // ---------- 일지 ----------
+  var newestFirst = true;
+  $('sortBtn').addEventListener('click', function () {
+    newestFirst = !newestFirst;
+    $('sortBtn').textContent = '정렬: ' + (newestFirst ? '최신순' : '오래된순');
+    renderJournal();
+  });
+  function renderJournal() {
+    var now = Date.now();
+    var list = records.slice().sort(function (a, b) {
+      var d = new Date(a.createdAt) - new Date(b.createdAt);
+      return newestFirst ? -d : d;
+    });
+    if (!list.length) { $('journalList').innerHTML = '<div class="empty">아직 기록이 없습니다.</div>'; return; }
+    var html = '';
+    list.forEach(function (r) {
+      var lockChip = r.locked ? '<span class="chip lock">🔒 48시간 잠금</span>' : '<span class="chip nolock">잠금 아님</span>';
+      var decChip, decText;
+      if (r.decision) {
+        decChip = '<span class="chip dec">결정: ' + esc(r.decision.choice) + '</span>';
+        decText = esc(r.decision.choice) + ' — ' + esc(r.decision.memo) + '<br><span class="meta">결정 시각: ' + esc(fmtTz(r.decision.decidedAt)) + '</span>';
+      } else if (r.locked && !isUnlocked(r, now)) {
+        decChip = '<span class="chip pending">잠금 중</span>';
+        decText = '잠금 중 — 남은 시간 ' + remain(new Date(r.unlockAt).getTime() - now) + ' (해제 후 기록)';
+      } else {
+        decChip = '<span class="chip pending">결정 미기록</span>';
+        decText = '확인 필요 (아직 기록하지 않음)';
+      }
+      var yesList = [];
+      (r.answers || []).forEach(function (a, i) { if (a === true) yesList.push(NUMS[i]); });
+      var ansHtml = '<ol>';
+      QUESTIONS.forEach(function (q, i) {
+        var a = r.answers ? r.answers[i] : null;
+        ansHtml += '<li>' + esc(q) + ' — <b>' + (a === true ? '예' : a === false ? '아니오' : '확인 필요') + '</b></li>';
+      });
+      ansHtml += '</ol>';
+
+      html += '<div class="j-item">' +
+        '<div class="vi-head"><span class="name" style="font-size:21px">' + esc(r.ticker) + '</span>' +
+        '<span>' + lockChip + ' ' + decChip + '</span></div>' +
+        '<dl class="j-grid">' +
+          '<dt>입력 시각</dt><dd>' + esc(fmtTz(r.createdAt)) + '</dd>' +
+          '<dt>사고 싶은 금액</dt><dd>' + esc(money(r.amountUSD)) + ' <span class="meta">(입력 당시 내가 적은 금액)</span></dd>' +
+          '<dt>체크 결과</dt><dd>\'예\' ' + (typeof r.yesCount === 'number' ? r.yesCount : '확인 필요') + '/8' + (yesList.length ? ' (' + yesList.join('') + ')' : '') + '</dd>' +
+          '<dt>잠금 여부</dt><dd>' + (r.locked ? '예 · 해제 시각 ' + esc(fmtTz(r.unlockAt)) : '아니오 (\'예\' 2개 이하)') + '</dd>' +
+          '<dt>최종 결정</dt><dd>' + decText + '</dd>' +
+        '</dl>' +
+        '<details><summary>이유와 체크리스트 상세 보기</summary>' +
+          '<div class="reason">' + esc(r.reason) + '</div>' + ansHtml +
+        '</details>';
+      if (!r.decision && isUnlocked(r, now)) {
+        html += '<details style="margin-top:6px"><summary>최종 결정 기록하기</summary>' +
+          (r.locked ? '<div class="ask" style="font-size:20px">아직도 사고 싶나?</div>' : '') +
+          decisionForm(r.id, pendingChoice[r.id] || '') + '</details>';
+      }
+      html += '</div>';
+    });
+    $('journalList').innerHTML = html;
+  }
+
+  // ---------- 백업 ----------
+  function stamp() {
+    var d = new Date();
+    return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
+  }
+  function download(name, text, type) {
+    var blob = new Blob([text], { type: type });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  $('exportJson').addEventListener('click', function () {
+    var payload = {
+      app: '48시간 금고',
+      format: 'vault48-backup-v1',
+      exportedAt: new Date().toISOString(),
+      exportedAtLocal: fmtTz(new Date().toISOString()),
+      timeZone: TZ,
+      note: '모든 시각은 기기 시계 기준. createdAt/unlockAt/decidedAt는 UTC(ISO 8601).',
+      count: records.length,
+      records: records
+    };
+    download('vault48-backup-' + stamp() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+    $('backupInfo').textContent = '내보낸 시각: ' + fmtTz(new Date().toISOString()) + ' · 기록 ' + records.length + '건';
+  });
+  $('exportCsv').addEventListener('click', function () {
+    function c(v) { v = String(v == null ? '' : v); return '"' + v.replace(/"/g, '""') + '"'; }
+    var rows = [['입력 시각', '종목명', '금액(USD)', '이유', '예 개수'].concat(QUESTIONS.map(function (q, i) { return NUMS[i] + ' ' + q; }))
+      .concat(['잠금 여부', '해제 시각', '최종 결정', '메모', '결정 시각', '시간대'])];
+    records.slice().sort(function (a, b) { return new Date(a.createdAt) - new Date(b.createdAt); }).forEach(function (r) {
+      rows.push([fmt(r.createdAt), r.ticker, r.amountUSD, r.reason, r.yesCount]
+        .concat((r.answers || []).map(function (a) { return a === true ? '예' : a === false ? '아니오' : '확인 필요'; }))
+        .concat([r.locked ? '예' : '아니오', r.locked ? fmt(r.unlockAt) : '', r.decision ? r.decision.choice : '미기록',
+          r.decision ? r.decision.memo : '', r.decision ? fmt(r.decision.decidedAt) : '', r.timeZone || TZ]));
+    });
+    var csv = '﻿' + rows.map(function (row) { return row.map(c).join(','); }).join('\r\n');
+    download('vault48-backup-' + stamp() + '.csv', csv, 'text/csv;charset=utf-8');
+    $('backupInfo').textContent = '내보낸 시각: ' + fmtTz(new Date().toISOString()) + ' · 기록 ' + records.length + '건';
+  });
+  $('importBtn').addEventListener('click', function () { $('importFile').click(); });
+  $('importFile').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var out = $('importResult');
+      try {
+        var data = JSON.parse(reader.result);
+        var incoming = Array.isArray(data) ? data : data.records;
+        if (!Array.isArray(incoming)) throw new Error('형식');
+        var valid = incoming.filter(function (r) {
+          return r && typeof r.id === 'string' && typeof r.createdAt === 'string' && !isNaN(new Date(r.createdAt).getTime()) &&
+            typeof r.ticker === 'string' && Array.isArray(r.answers) && r.answers.length === 8 && typeof r.locked === 'boolean';
+        });
+        var have = {}; records.forEach(function (r) { have[r.id] = true; });
+        var added = valid.filter(function (r) { return !have[r.id]; });
+        if (!confirm('백업 파일의 기록 ' + incoming.length + '건 중 새로 추가될 기록은 ' + added.length + '건입니다. 불러올까요?')) return;
+        records = records.concat(added);
+        save(records);
+        out.innerHTML = '<div class="notice ok">불러오기 완료: ' + added.length + '건 추가 · ' +
+          (incoming.length - valid.length) + '건은 형식 오류로 제외 · ' + (valid.length - added.length) + '건은 이미 있음.<br>' +
+          '불러온 시각: ' + esc(fmtTz(new Date().toISOString())) + '</div>';
+        renderBadge();
+      } catch (e) {
+        out.innerHTML = '<div class="notice lock">이 파일을 읽을 수 없습니다. 48시간 금고에서 내보낸 JSON 백업 파일인지 확인 필요.</div>';
+      }
+      $('importFile').value = '';
+    };
+    reader.readAsText(f);
+  });
+
+  // ---------- 전체 렌더 ----------
+  function renderAll() {
+    renderBadge();
+    if (currentTab === 'vault') renderVault();
+    if (currentTab === 'journal') renderJournal();
+  }
+
+  renderQuestions();
+  renderAll();
+  tickClock();
+  setInterval(function () { tickClock(); tickVault(); }, 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { tickClock(); renderAll(); } });
+})();
+</script>
+</body>
+</html>
